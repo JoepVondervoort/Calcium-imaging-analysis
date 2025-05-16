@@ -2,7 +2,7 @@
 
 ## Overview
 
-Welcome to the Image Analysis Toolkit, a collection of Python Jupyter Notebook scripts for various image analysis tasks. This toolkit consists of two main scripts:
+This toolkit consists of two main scripts:
 
 ### Script 1: TIF Frame Extraction
 
@@ -69,7 +69,7 @@ scipy
 
 Installation
 bash# Clone the repository
-git clone https://github.com/yourusername/calcium-imaging-analysis.git
+git clone https://github.com/joepvondervoort/calcium-imaging-analysis.git
 cd calcium-imaging-analysis
 
 # Create a virtual environment (optional but recommended)
