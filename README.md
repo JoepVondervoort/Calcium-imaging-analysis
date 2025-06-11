@@ -1,119 +1,185 @@
-# Calcium-imaging-analysis
+# Calcium Imaging Analysis Pipeline
 
 ## Overview
 
-This toolkit consists of two main scripts:
+This Python pipeline analyzes calcium imaging data from fluorescence microscopy experiments. It processes CSV files containing calcium traces, detects peaks in neural activity, performs statistical analyses, and generates comprehensive visualizations and reports.
 
-### Script 1: TIF Frame Extraction
+The pipeline is specifically designed to analyze "Measurement 1" data from two types of experiments:
+- **RNA Interference experiments** (siRNA/saRNA treatments)
+- **Chemical treatment experiments** (various pharmacological compounds)
 
-This script extracts the first frames from TIF files, allowing for the analysis of initial frames using Stardist to select Regions of Interest (ROIs). It is designed to prevent computer crashes by processing only the first frames.
+## Key Features
 
-### Script 2: Peak Detection
+### 1. Peak Detection Algorithm
+- Uses prominence-based peak detection with specific parameters:
+  - Prominence threshold: > 0.2
+  - Minimum peak separation: 5 frames
+  - Minimum peak width: 1 frame
+- Cells are classified as "active" if they exhibit ≥ 2 peaks
 
-This script is designed for peak detection and analysis within .txt files. It consists of two main cells:
+### 2. Data Processing
+- Calculates ΔF/F (change in fluorescence over baseline)
+- Removes outliers using z-score method (threshold = 3.0)
+- Extracts multiple kinetic parameters:
+  - Number of peaks
+  - Peak amplitude
+  - Slope of calcium trace
+  - Full Width at Half Maximum (FWHM)
 
-#### Cell 1: Single File Analysis
+### 3. Statistical Analysis
+- Normality testing using Shapiro-Wilk test
+- Appropriate statistical tests based on data distribution:
+  - Normal data: Independent t-test
+  - Non-normal data: Mann-Whitney U test
+- Effect size calculation (Cohen's d)
+- Multiple comparison corrections
 
-Analyzes peaks per individual .txt file and provides detailed peak-related statistics.
+### 4. Visualization Outputs
+- **Violin plots** with individual data points for kinetic parameters
+- **Activity bar charts** showing percentage of active cells per condition
+- **Individual calcium traces** with marked peaks (PDF format)
+- **Summary reports** with comprehensive statistics
 
-Calcium Imaging Data Analysis
-Overview
-This repository contains a comprehensive Python script for analyzing calcium imaging data with robust statistical annotations. The script processes CSV files containing calcium imaging results, calculates kinetic parameters, performs statistical analysis, and generates publication-quality visualizations.
-Features
+## Input Requirements
 
-Automated Calcium Transient Detection: Identifies calcium transients using peak detection algorithms
-Comprehensive Kinetic Analysis: Calculates key metrics including:
+### File Structure
+- CSV files with calcium imaging data
+- First column: Frame numbers
+- Subsequent columns: ROI (Region of Interest) intensity values
 
-Number of peaks
-Signal amplitude
-Signal slope
-Full width at half maximum (FWHM)
+### Naming Conventions
+#### RNA Experiments
+- Must contain "Meas1" in filename
+- Condition identifiers: "Scr" (control), "siRNA", "saRNA"
 
+#### Chemical Experiments
+- Must contain "1001" in filename
+- Condition identifiers: "WT", "Nav", "PTZ", "Vera"
 
-Robust Statistical Analysis:
+## Output Structure
 
-Normality testing with Shapiro-Wilk
-Non-parametric Kruskal-Wallis test for multi-group comparisons
-Pairwise comparisons using Mann-Whitney U test
-Automatic significance annotation
+```
+CalciumImaging_Measurement1_Results_[timestamp]/
+├── RNA_Interference/
+│   ├── Figures/
+│   │   ├── analysis_measurement1.png/pdf
+│   │   └── activity_measurement1.png/pdf
+│   ├── Statistics/
+│   │   └── measurement_1_stats.txt
+│   ├── Data/
+│   │   ├── measurement1_data.csv
+│   │   └── file_parsing_log_measurement1.csv
+│   └── Calcium_Traces/
+│       └── [Condition folders with trace PDFs]
+└── Chemical_Treatments/
+    └── [Same structure as RNA_Interference]
+```
 
+## Dependencies
 
-Intelligent Outlier Handling: Removes outliers using interquartile range (IQR) method
-Professional Visualization:
+```python
+- pandas
+- numpy
+- matplotlib
+- seaborn
+- scipy
+```
 
-Violin plots with overlaid group means
-Sample size annotations
-Integrated statistical results
+## Usage
 
+1. Update the file paths in the script:
+```python
+rna_path = r'path/to/RNA/data'
+chem_path = r'path/to/chemical/data'
+```
 
-Flexible Data Organization:
+2. Run the script:
+```python
+python calcium_imaging_analysis.py
+```
 
-Parses experimental conditions from filenames
-Processes multiple measurements and replicates
-Supports multiple experimental conditions
+## Analysis Workflow
 
+1. **File Discovery**: Recursively searches directories for CSV files
+2. **File Parsing**: Extracts condition and measurement information from filenames
+3. **Kinetic Analysis**: Processes each ROI to detect peaks and calculate parameters
+4. **Quality Control**: Removes outliers using z-score method
+5. **Statistical Testing**: Compares all conditions to control
+6. **Visualization**: Generates plots and trace PDFs
+7. **Reporting**: Creates comprehensive statistical reports
 
+## Key Functions
 
-Requirements
+### Core Analysis
+- `calculate_kinetics_peaks()`: Detects peaks and calculates kinetic parameters
+- `remove_outliers_zscore()`: Removes statistical outliers
+- `parse_filename()`: Extracts experimental metadata from filenames
 
-Python 3.7+
-Dependencies:
+### Statistical Analysis
+- `perform_statistical_analysis()`: Comprehensive statistical testing
+- `generate_stats_report()`: Creates detailed statistical reports
 
-pandas
-numpy
-matplotlib
-seaborn
-scipy
+### Visualization
+- `create_analysis_plots()`: Generates violin plots for kinetic parameters
+- `create_activity_plot()`: Creates bar charts for cell activity
+- `plot_calcium_traces()`: Generates PDFs of individual calcium traces
 
+### Pipeline Control
+- `analyze_experiment_measurement1()`: Main analysis pipeline
+- `collect_measurement1_data()`: Data collection and organization
 
+## Output Interpretation
 
-Installation
-bash# Clone the repository
-git clone https://github.com/joepvondervoort/calcium-imaging-analysis.git
-cd calcium-imaging-analysis
+### Activity Classification
+- **Active cells**: ≥ 2 detected peaks
+- **Inactive cells**: < 2 detected peaks
 
-# Create a virtual environment (optional but recommended)
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+### Statistical Significance
+- `*`: p < 0.05
+- `**`: p < 0.01
+- `***`: p < 0.001
+- `ns`: not significant
 
-# Install dependencies
-pip install pandas numpy matplotlib seaborn scipy
-Usage
+### Effect Size (Cohen's d)
+- Small: |d| < 0.5
+- Medium: 0.5 ≤ |d| < 0.8
+- Large: |d| ≥ 0.8
 
-Organize your calcium imaging CSV files in a folder
-Run the script:
-bashpython calcium_imaging_analysis.py
+## Customization
 
-When prompted, enter:
+### Modifying Peak Detection Parameters
+```python
+peaks, properties = find_peaks(dff, prominence=0.2, distance=5, width=1)
+```
 
-The path to your CSV files folder
-The desired output folder path for results
+### Changing Outlier Threshold
+```python
+df_clean = remove_outliers_zscore(df, metric, threshold=3.0)
+```
 
+### Adding New Conditions
+Update the condition mappings in the analysis functions:
+```python
+condition_order = ['Control', 'Treatment1', 'Treatment2']
+color_map = {'Control': '#1f77b4', 'Treatment1': '#ff7f0e'}
+```
 
+## Notes
 
-Expected File Naming Convention
-The script expects CSV files to follow this naming pattern:
-YYYYMMDD_Condition[Replicate].Measurement.Results.csv
-Where:
+- The pipeline only analyzes "Measurement 1" files to ensure consistency
+- Dose-response files (containing µM, µL markers) are automatically excluded
+- All outputs include both PNG and PDF formats for publication flexibility
+- Statistical tests are automatically selected based on data distribution
 
-YYYYMMDD: Date in format (e.g., 20230101)
-Condition: Experimental condition (e.g., WT, Nav, PTZ, Vera)
-Replicate: Optional replicate number
-Measurement: Measurement number
+## Citation
 
-Example: 20230101_WT1.1.Results.csv
-Output
-The script generates:
+If you use this pipeline in your research, please cite:
+[Your citation information here]
 
-Violin plots for each metric and measurement (.png format)
-Statistical analysis summary for each metric (.txt format)
+## License
 
-Example
-Show Image
-Customization
-The script can be modified to accommodate different experimental setups:
+[Your license information here]
 
-Adjust peak detection parameters in the calculate_kinetics_peaks function
-Modify the condition list in the plot_data function
-Change statistical tests or thresholds in the statistical_analysis function
+## Contact
 
+[Your contact information here]
