@@ -171,15 +171,3 @@ color_map = {'Control': '#1f77b4', 'Treatment1': '#ff7f0e'}
 - All outputs include both PNG and PDF formats for publication flexibility
 - Statistical tests are automatically selected based on data distribution
 
-## Citation
-
-If you use this pipeline in your research, please cite:
-[Your citation information here]
-
-## License
-
-[Your license information here]
-
-## Contact
-
-[Your contact information here]
